@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block head %}{% endblock %}
+
+{% block content %}
+<title>Index</title>
+<form method="POST" action="/page">
+    <button type='submit' formaction="{{ url_for('signup') }}">Touch me!</button>
+</form>
+{% endblock %}
