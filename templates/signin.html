@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block head %}
+<title>
+    Sign in
+</title>
+{% endblock %}
+
+
+
+{% block content %}
+<h1>Sign in HERE</h1>
+<form action="/signin_check" method='POST'>
+    <input type='email' name="email" placeholder="EMAIL">
+    <br>
+    <input type="password" name="password" placeholder="PASSWORD">
+    <br>
+    <button type="submit">PROCEED</button>
+</form>
+
+{% endblock %}
