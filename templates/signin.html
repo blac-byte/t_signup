@@ -3,18 +3,28 @@
 <title>
     Sign in
 </title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% endblock %}
 
 
 
 {% block content %}
-<h1>Sign in HERE</h1>
-<form action="/signin_check" method='POST'>
-    <input type='email' name="email" placeholder="EMAIL">
-    <br>
-    <input type="password" name="password" placeholder="PASSWORD">
-    <br>
-    <button type="submit">PROCEED</button>
-</form>
+
+
+  <div class="container">
+    <h2 class="title">Sign in HERE</h2>
+    <hr class="divider">
+
+    <form method="POST" action="/signin_check" class="signup-form">
+      <input type="email" name="email" placeholder="EMAIL" class="input-field" required>
+      <input type="password" name="password" placeholder="PASSWORD" class="input-field" required>
+      
+      <button type="submit" class="btn">PROCEED</button>
+    </form>
+    <p class="signin-text">
+      Don't have an account?
+      <a href="/" class="signin-link">Sign up</a>
+    </p>
+  </div>
 
 {% endblock %}

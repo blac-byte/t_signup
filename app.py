@@ -1,34 +1,60 @@
-from flask import Flask, render_template, request, url_for, redirect, session, flash
+from flask import Flask, render_template, request, url_for, redirect, flash, session
 from werkzeug.security import check_password_hash as hash_check, generate_password_hash as hash
 from flask_sqlalchemy import SQLAlchemy
-from datetime import timedelta
+from flask_login import LoginManager
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+
+
 
 app=Flask(__name__)
 app.secret_key='hello'
-app.permanent_session_lifetime=timedelta(days=3)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:root@localhost:3306/flaskDB"
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "signin"   # Redirect here if not logged in
+
+# Database connector
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:root@localhost:3306/flaskdb"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db=SQLAlchemy(app)
 
+
 #__________________________________________________________________________________________
 
-class student(db.Model):
-    id=db.Column(db.Integer,primary_key=True,autoincrement=True)
-    stud_email=db.Column(db.String(100),unique=True,nullable=False)
-    stud_pass=db.Column(db.String(100),nullable=False)
+app.config['SESSION_COOKIE_HTTPONLY'] = True   # JS can't read cookies
+app.config['SESSION_COOKIE_SECURE'] = True     # only send cookies over HTTPS
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # protect against CSRF
 
-    def __init__(self,stud_email,stud_pass):
-        self.stud_email=stud_email
-        self.stud_pass=stud_pass
+#__________________________________________________________________________________________
+
+
+# Database frame/ skeleton
+class student_db(db.Model, UserMixin):
+    id=db.Column(db.Integer,primary_key=True,autoincrement=True)
+    email=db.Column(db.String(100),unique=True,nullable=False)
+    password=db.Column(db.Text,nullable=True)
+
+    def __init__(self,email,password):
+        self.email=email
+        self.password=password
 
 
 with app.app_context():
     db.create_all()
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "signin" #-------------------------------- redirects here if not logged in
+
+@login_manager.user_loader
+def load_user(user_id):
+    return student_db.query.get(int(user_id))
+
 #__________________________________________________________________________________________
 
 @app.route('/',methods=['POST','GET'])          
-def index():
+def signup():
         return render_template('signup.html')
 
 # The code block below is the watchdog for the code block above
@@ -37,24 +63,22 @@ def index():
 @app.route('/signup_check',methods=['POST','GET'])          
 def signup_check():
         if request.method=='POST':
-              email=request.form.get('email')
-              password=request.form.get('password')
-              hash_password=hash(password)
-              session['email']=email
-            #   if email and password in db:
-            #     return 'You already have an account'
-            #   elif  email and passord not in db:
-            #        create a new row in db
-
-              print(f'Email : {email}')
-              print(f'Password : {password}')
-              return redirect(url_for('dashboard'))
-            #   if email in db: 
-            #     db.session.add(student(email,password))
-            #     db.session.commit()
-            #     return redirect(url_for('dashboard'))
+            email=request.form.get('email').strip().lower()
+            password=request.form.get('password')
+            hash_password=hash(password)
+            user=student_db.query.filter_by(email=email).first()
+            if user:  #----------------------------------- checks for existing email in db with no password
+                if user.password is None: #--------------- checks if account has been initialized
+                    user.password=hash_password
+                    db.session.commit()
+                    login_user(user)
+                    return redirect(url_for('dashboard'))
+                else:
+                    return '<h1>Acc already exists<h1>'
+            else:
+              return '<h1>No acc<h1>'
         else:
-            return render_template('index.html')
+              return redirect(url_for('index'))
 
 #__________________________________________________________________________________________
 
@@ -66,26 +90,48 @@ def signin():
 # Basically checks all the actions of '/signin'
 
 
-@app.route('/signin_check',methods=['POST','GET'])          
+@app.route('/signin_check',methods=['POST'])          
 def signin_check():
     if request.method=='POST':
-         if 'email' in session:
-              return redirect(url_for('dashboard'))
-         else:
-            email=request.form.get('email')
-            password=request.form.get('password')
-            # if hash_check(db_password,password):
-            session['email']=email
+        if current_user.is_authenticated:
+             return redirect(url_for('dashboard'))
+        email=request.form.get('email').strip().lower()
+        password=request.form.get('password')
+        user=student_db.query.filter_by(email=email).first()
+        if user and hash_check(user.password,password):
+            login_user(user)
             return redirect(url_for('dashboard'))
+        else:
+            return redirect(url_for('signin'))
+        
     else:
-        return redirect(url_for('index'))
+        return redirect(url_for('signin'))
 #__________________________________________________________________________________________
 
-@app.route('/dashboard',methods=['GET','POST'])
+@app.route('/dashboard', methods=['GET','POST'])
+
 def dashboard():
+    if request.method=='POST':
+        raw_text=request.form.get('table')
+        rows=raw_text.splitlines()
+        for row in rows:
+            part=row.split('\t')
+            print(part)
+            day=part[0]
+
+        print('___________________________________________________')
+        return redirect(url_for('dashboard'))
+
     return render_template('dashboard.html')
 #__________________________________________________________________________________________
 
+@app.route('/logout', methods=['GET','POST'])
+@login_required
+def logout():
+     if request.method=='POST':
+          logout_user()
+          flash("You have been logged out successfully!", "info")
+          return redirect(url_for('signin'))
 
 
 
