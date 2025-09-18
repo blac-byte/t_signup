@@ -112,12 +112,34 @@ def signin_check():
 
 def dashboard():
     if request.method=='POST':
+        theory={}
+        lab={}
+        theory_start, theory_end = None, None
+        lab_start, lab_end = None, None
+        day = None
         raw_text=request.form.get('table')
         rows=raw_text.splitlines()
         for row in rows:
             part=row.split('\t')
-            print(part)
-            day=part[0]
+            if part[0]=='THEORY' and part[1]=='Start':
+                 theory_start=part[2:]
+                 print(theory_start)
+            elif part[0]=='End':
+                 theory_end=part[1:]
+                 print(theory_end)
+            elif part[0]=='LAB' and part[1]=='Start':
+                 lab_start=part[2:]
+                 print(lab_start)
+            elif part[0]=='End' and not lab_end:
+                 lab_end=part[1:]
+                 print(lab_end)
+            elif part[0] in ['MON','TUE','WED','THU','FRI','SAT','SUN']:
+                 day=part[0]
+                 theory[day]=part[2:]
+                 print(theory)
+            elif part[0]=='LAB' and day:
+                 lab[day]=part[1:]
+                 print(lab)
 
         print('___________________________________________________')
         return redirect(url_for('dashboard'))
