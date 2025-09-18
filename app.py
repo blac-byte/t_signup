@@ -136,10 +136,11 @@ def dashboard():
             elif part[0] in ['MON','TUE','WED','THU','FRI','SAT','SUN']:
                  day=part[0]
                  theory[day]=part[2:]
-                 print(theory)
+                 
             elif part[0]=='LAB' and day:
                  lab[day]=part[1:]
-                 print(lab)
+        print(f'day {theory}')
+        print(f'lab {lab}')
 
         print('___________________________________________________')
         return redirect(url_for('dashboard'))
