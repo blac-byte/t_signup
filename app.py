@@ -114,6 +114,8 @@ def dashboard():
     if request.method=='POST':
         theory={}
         lab={}
+        theory_timing=[]
+        lab_timing=[]
         theory_start, theory_end = None, None
         lab_start, lab_end = None, None
         day = None
@@ -123,26 +125,36 @@ def dashboard():
             part=row.split('\t')
             if part[0]=='THEORY' and part[1]=='Start':
                  theory_start=part[2:]
-                 print(theory_start)
-            elif part[0]=='End':
+            elif part[0]=='End' and not theory_end:
                  theory_end=part[1:]
-                 print(theory_end)
             elif part[0]=='LAB' and part[1]=='Start':
                  lab_start=part[2:]
-                 print(lab_start)
             elif part[0]=='End' and not lab_end:
                  lab_end=part[1:]
-                 print(lab_end)
             elif part[0] in ['MON','TUE','WED','THU','FRI','SAT','SUN']:
                  day=part[0]
                  theory[day]=part[2:]
-                 
             elif part[0]=='LAB' and day:
                  lab[day]=part[1:]
-        print(f'day {theory}')
-        print(f'lab {lab}')
 
+        
+        for start, end in zip(theory_start, theory_end): 
+             if start not in ['Lunch','-'] and end not in ['Lunch','-']:
+                  theory_timing.append({'start':start,'end':end})
+
+        for start, end in zip(lab_start, lab_end): 
+             if start not in ['Lunch','-'] and end not in ['Lunch','-']:
+                  lab_timing.append({'start':start,'end':end})
+
+        print('+++++++++++++++++++++++++++++++++++++++++++++++++++')
+        print(theory_timing)
         print('___________________________________________________')
+        print(lab_timing)
+        print('+++++++++++++++++++++++++++++++++++++++++++++++++++')
+        print(f'day {theory}')
+        print('___________________________________________________')
+        print(f'lab {lab}')
+        print('+++++++++++++++++++++++++++++++++++++++++++++++++++')
         return redirect(url_for('dashboard'))
 
     return render_template('dashboard.html')
