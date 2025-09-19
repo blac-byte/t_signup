@@ -1,17 +1,18 @@
 {% extends 'base.html' %}
 {% block head %}
 <title>Dashboard</title>
+
 {% endblock %}
 
 
 
 {% block content %}
 
-<h1>Dashboard</h1>
+
 
 <form action="{{ url_for('dashboard') }}" method="POST">
-    <textarea id="table" name="table" rows="15" cols="130"></textarea>
-    <button type="submit">Submit</button>
+    <textarea id="table" name="table" rows="15" cols="130" class="textarea"></textarea>
+    <button type="submit" class="dash_button">Submit</button>
 </form>
 
 {% endblock %}
