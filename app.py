@@ -4,7 +4,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 
-
+#
+#
+# Right now the program does not have any error handling and requires the user to give exact input as the 
+# program requires. So that need to be added.
+# 
+# The program uses only the table without any user bias and deletes the global time_db table which needs to
+# be changed
+#
 
 app=Flask(__name__)
 app.secret_key='hello'
@@ -43,6 +50,39 @@ class student_db(db.Model, UserMixin):
 with app.app_context():
     db.create_all()
 
+
+class time_db(db.Model):
+    id=db.Column(db.Integer,primary_key=True,autoincrement=True)
+    start=db.Column(db.String(20),nullable=False)
+    end=db.Column(db.String(20),nullable=False)
+    slot_type=db.Column(db.String(10))
+
+    def __init__(self,start,end,slot_type):
+        self.start=start
+        self.end=end
+        self.slot_type=slot_type
+
+with app.app_context():
+    db.create_all()
+class course_db(db.Model):
+    id=db.Column(db.Integer,primary_key=True,autoincrement=True)
+    slot_id=db.Column(db.String(20),nullable=False)
+    course_name=db.Column(db.String(20),nullable=False)
+    course_type=db.Column(db.String(10))
+    course_room=db.Column(db.String(20),nullable=False)
+    batch=db.Column(db.String(10))
+
+    def __init__(self,slot_id,course_name,course_type,course_room,batch):
+        self.slot_id=slot_id
+        self.course_name=course_name
+        self.course_type=course_type
+        self.course_room=course_room
+        self.batch=batch
+
+with app.app_context():
+    db.create_all()
+
+#__________________________________________________________________________________________
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "signin" #-------------------------------- redirects here if not logged in
@@ -100,6 +140,7 @@ def signin_check():
         user=student_db.query.filter_by(email=email).first()
         if user and hash_check(user.password,password):
             login_user(user)
+            login_user(user)
             return redirect(url_for('dashboard'))
         else:
             return redirect(url_for('signin'))
@@ -108,8 +149,8 @@ def signin_check():
         return redirect(url_for('signin'))
 #__________________________________________________________________________________________
 
-@app.route('/dashboard', methods=['GET','POST'])
-
+@app.route('/dashboard', methods=['POST','GET'])
+@login_required
 def dashboard():
     if request.method=='POST':
         theory={}
@@ -137,7 +178,18 @@ def dashboard():
             elif part[0]=='LAB' and day:
                  lab[day]=part[1:]
 
-        
+        time_db.query.delete()  
+        course_db.query.delete()
+        #
+        #
+        # Right now all the tables are just for one person.
+        # In the future it would be that each user has their own set of tables for slots, courses, days
+        #
+        #
+        db.session.commit()
+        db.session.commit()
+
+
         for start, end in zip(theory_start, theory_end): 
              if start not in ['Lunch','-'] and end not in ['Lunch','-']:
                   theory_timing.append({'start':start,'end':end})
@@ -146,15 +198,30 @@ def dashboard():
              if start not in ['Lunch','-'] and end not in ['Lunch','-']:
                   lab_timing.append({'start':start,'end':end})
 
-        print('+++++++++++++++++++++++++++++++++++++++++++++++++++')
-        print(theory_timing)
-        print('___________________________________________________')
-        print(lab_timing)
-        print('+++++++++++++++++++++++++++++++++++++++++++++++++++')
-        print(f'day {theory}')
-        print('___________________________________________________')
-        print(f'lab {lab}')
-        print('+++++++++++++++++++++++++++++++++++++++++++++++++++')
+        for slot in theory_timing:
+            db.session.add(time_db(slot['start'], slot['end'], 'Theory'))
+        db.session.commit()
+
+        for slot in lab_timing:
+            db.session.add(time_db(slot['start'], slot['end'], 'Lab'))
+        db.session.commit()
+
+        for day in theory:
+            for part in theory[day]:
+                if part.count('-')>1:
+                     parts=part.split('-')
+                     db.session.add(course_db(parts[0],parts[1],parts[2],parts[3],parts[4]))
+        db.session.commit()
+
+        for day in lab:
+            for part in lab[day]:
+                if part.count('-')>1:
+                     parts=part.split('-')
+                     db.session.add(course_db(parts[0],parts[1],parts[2],parts[3],parts[4]))
+        db.session.commit()
+
+
+
         return redirect(url_for('dashboard'))
 
     return render_template('dashboard.html')
