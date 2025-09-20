@@ -16,8 +16,13 @@
 
     <form method="POST" action="/signin_check" class="signup-form">
       <input type="email" name="email" placeholder="EMAIL" class="input-field" required>
+      <style>
+          input:focus::placeholder {color: transparent;}
+      </style>
       <input type="password" name="password" placeholder="PASSWORD" class="input-field" required>
-      
+      <style>
+          input:focus::placeholder {color: transparent;}
+      </style>
       <button type="submit" class="btn">PROCEED</button>
     </form>
     <p class="signin-text">

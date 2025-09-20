@@ -134,7 +134,7 @@ def signin():
 def signin_check():
     if request.method=='POST':
         if current_user.is_authenticated:
-             return redirect(url_for('dashboard'))
+             return render_template('dashboard.html')
         email=request.form.get('email').strip().lower()
         password=request.form.get('password')
         user=student_db.query.filter_by(email=email).first()
@@ -149,9 +149,19 @@ def signin_check():
         return redirect(url_for('signin'))
 #__________________________________________________________________________________________
 
-@app.route('/dashboard', methods=['POST','GET'])
+@app.route('/dashboard', methods=['GET','POST'])
 @login_required
 def dashboard():
+    return render_template('dashboard.html')
+
+
+# The code block below is the watchdog for the code block above
+# Basically checks all the actions of '/'
+
+
+@app.route('/dashboard_check', methods=['POST'])
+@login_required
+def dashboard_check():
     if request.method=='POST':
         theory={}
         lab={}
@@ -224,20 +234,25 @@ def dashboard():
 
         return redirect(url_for('dashboard'))
 
-    return render_template('dashboard.html')
+    return redirect(url_for('signin'))
 #__________________________________________________________________________________________
 
 @app.route('/logout', methods=['GET','POST'])
 @login_required
 def logout():
-     if request.method=='POST':
-          logout_user()
-          flash("You have been logged out successfully!", "info")
-          return redirect(url_for('signin'))
+        logout_user()
+        flash("You have been logged out successfully!", "info")
+        return redirect(url_for('signin'))
 
+#__________________________________________________________________________________________
 
+@app.errorhandler(404)
+def page_not_found(e):
+     return render_template('404.html')
 
-
+@app.errorhandler(405)
+def page_not_found(e):
+     return render_template('405.html')
 
 if __name__=='__main__':
     app.run(debug=True)
