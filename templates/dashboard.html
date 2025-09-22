@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block head %}
+<title>Dashboard</title>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+
+<form action="{{ url_for('dashboard_check') }}" method="POST">
+    <textarea 
+    id="table"
+    name="table" 
+    rows="15" 
+    cols="130" 
+    class="textarea" 
+    placeholder="This is a placeholder text."></textarea>
+    <style>
+        textarea:focus::placeholder {color: transparent;}
+    </style>
+    <button type="submit" class="btn">SUBMIT</button>
+</form>
+
+{% endblock %}
