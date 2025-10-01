@@ -27,7 +27,8 @@ def create_app(config_class="app.config.Config"):
 
     # Import models so db.create_all() knows them
     from app.models import student, time, course
-
+    with app.app_context():
+        db.create_all()
     # Register blueprints (routes)
     from app.routes.auth import bp as main_routes
     app.register_blueprint(main_routes)
