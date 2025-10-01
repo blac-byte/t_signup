@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block head %}{% endblock %}
+
+
+
+{% block content %}
+
+<!-- templates/redirect_to_schedule.html -->
+<form id="scheduleRedirectForm" action="{{ url_for('schedule.schedule') }}" method="POST">
+    <!-- You can pass any hidden data if needed -->
+    <input type="hidden" name="from_parser" value="true">
+</form>
+
+<script>
+    document.getElementById('scheduleRedirectForm').submit();
+</script>
+
+
+
+{% endblock %}

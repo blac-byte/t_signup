@@ -5,6 +5,28 @@
 
 {% block content %}
 
-<h1>hi</h1>
+{% if session.schedule %}
+  <table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Start Time</th>
+        <th>End Time</th>
+        <th>Course ID</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in session.schedule %}
+      <tr>
+        <td>{{ item.start }}</td>
+        <td>{{ item.end }}</td>
+        <td>{{ item.course_id }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No schedule data available.</p>
+{% endif %}
+
 
 {% endblock %}
